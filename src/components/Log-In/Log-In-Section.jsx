@@ -1,8 +1,12 @@
 import { Button, TextField, Typography } from "@mui/material";
 import { useState } from "react";
 import { Web3 } from "web3";
+import { login } from "../../lib/api/auth";
+import { useNavigate } from "react-router-dom";
 
 const LogInSection = () => {
+  const navigate = useNavigate();
+
   const [loading, setLoading] = useState(false);
   const [isMetamaskConnected, setIsMetamaskConnected] = useState(false);
   const [values, setValues] = useState({
@@ -61,6 +65,17 @@ const LogInSection = () => {
 
     const signature = await web3.eth.personal.sign(username, address, password);
     console.log(signature);
+
+    const payload = { username, address, password, signature };
+
+    await login(payload)
+      .then((res) => {
+        console.log(res);
+        navigate(`/`);
+      })
+      .catch((err) => {
+        console.error(err);
+      });
   };
 
   return (

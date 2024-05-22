@@ -10,7 +10,7 @@ const Navbar = () => {
         <NavLink to="/sign-up" className="text-xl not-italic font-semibold text-black cursor-pointer font-hindi">
           Sign Up
         </NavLink>
-        <NavLink to="/log-in" className="text-xl not-italic font-semibold text-black cursor-pointer font-hindi">
+        <NavLink to="/login" className="text-xl not-italic font-semibold text-black cursor-pointer font-hindi">
           Log in
         </NavLink>
       </div>
