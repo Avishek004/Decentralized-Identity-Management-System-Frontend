@@ -71,6 +71,7 @@ const LogInSection = () => {
     await login(payload)
       .then((res) => {
         console.log(res);
+        localStorage.setItem("access_token", res?.data?.token);
         navigate(`/`);
       })
       .catch((err) => {
