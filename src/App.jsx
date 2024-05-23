@@ -1,10 +1,13 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Suspense, lazy } from "react";
-import Loader from "./components/common/Loader";
-import SignUp from "./pages/Sign-Up";
-import LogIn from "./pages/Log-In";
 
+import Loader from "./components/common/Loader";
+
+const LogIn = lazy(() => import("./pages/Log-In"));
+const SignUp = lazy(() => import("./pages/Sign-Up"));
+const UserInfo = lazy(() => import("./pages/User-Info"));
 const LandingPage = lazy(() => import("./pages/Landing-Page"));
+const EditUserInfo = lazy(() => import("./pages/Edit-User-Info"));
 
 function App() {
   return (
@@ -14,6 +17,8 @@ function App() {
           <Route path="/" element={<LandingPage />} />
           <Route path="/sign-up" element={<SignUp />} />
           <Route path="/login" element={<LogIn />} />
+          <Route path="/user-info" element={<UserInfo />} />
+          <Route path="/edit-user-info" element={<EditUserInfo />} />
         </Routes>
       </Suspense>
     </BrowserRouter>

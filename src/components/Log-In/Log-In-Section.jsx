@@ -14,6 +14,7 @@ const LogInSection = () => {
     username: "",
     password: "",
   });
+  const [errorMessage, setErrorMessage] = useState();
 
   async function connectMetamask() {
     //check metamask is installed
@@ -76,6 +77,7 @@ const LogInSection = () => {
       })
       .catch((err) => {
         console.error(err);
+        setErrorMessage(err.response.data.message);
       });
   };
 
@@ -125,6 +127,11 @@ const LogInSection = () => {
                 {loading ? "Logging in..." : "Log in"}
               </Button>
             </form>
+            {errorMessage && (
+              <Typography variant="h5" align="center" className="w-full text-red-900">
+                {errorMessage}
+              </Typography>
+            )}
           </>
         )
       )}
