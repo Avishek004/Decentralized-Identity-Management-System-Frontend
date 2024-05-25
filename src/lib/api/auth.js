@@ -12,15 +12,28 @@ export const login = async (payload) => {
   });
 };
 
+export const loginWithMetamask = async (payload) => {
+  return await axios.post(`${import.meta.env.VITE_AUTH_API_URL}/api/v1/auth/login-with-metamask`, payload, {
+    headers: { "Content-Type": "application/json" },
+  });
+};
+
 export const getUserInfo = async () => {
-  return await axios
-    .get(`${import.meta.env.VITE_AUTH_API_URL}/api/v1/auth/get-user-info`, {
-      headers: {
-        Authorization: "Bearer " + localStorage.getItem("access_token"),
-      },
-      "Content-Type": "application/json",
-    })
-    .catch((err) => localStorage.removeItem("access_token"));
+  return await axios.get(`${import.meta.env.VITE_AUTH_API_URL}/api/v1/auth/get-user-info`, {
+    headers: {
+      Authorization: "Bearer " + localStorage.getItem("access_token"),
+    },
+    "Content-Type": "application/json",
+  });
+};
+
+export const authenticateUser = async () => {
+  return await axios.get(`${import.meta.env.VITE_AUTH_API_URL}/api/v1/auth/authenticate`, {
+    headers: {
+      Authorization: "Bearer " + localStorage.getItem("access_token"),
+    },
+    "Content-Type": "application/json",
+  });
 };
 
 export const updateUserInfo = async (payload) => {

@@ -1,6 +1,7 @@
-import { Suspense, lazy } from "react";
+import { Suspense, lazy, useEffect } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { authenticateUser } from "./lib/api/auth";
 
 import Loader from "./components/common/Loader";
 import PrivateRoute from "./components/common/Private-Route";
@@ -14,6 +15,19 @@ const EditUserInfo = lazy(() => import("./pages/Edit-User-Info"));
 const queryClient = new QueryClient();
 
 function App() {
+  useEffect(() => {
+    const loggedInUser = localStorage.getItem("access_token");
+    if (loggedInUser) {
+      authenticateUser()
+        .then((res) => {
+          console.log(res);
+        })
+        .catch((err) => {
+          localStorage.clear();
+        });
+    }
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter basename="/">

@@ -1,8 +1,11 @@
-import { Button, TextField, Typography } from "@mui/material";
+import { Button, Typography } from "@mui/material";
 import { useState } from "react";
 import { Web3 } from "web3";
-import { login } from "../../lib/api/auth";
+import { login, loginWithMetamask } from "../../lib/api/auth";
 import { useNavigate } from "react-router-dom";
+import ManualLogIn from "./Manual-Log-In";
+import MetamaskLogin from "./Metamask-Login";
+import LoginTabs from "./Log-In-Tabs";
 
 const LogInSection = () => {
   const navigate = useNavigate();
@@ -54,7 +57,7 @@ const LogInSection = () => {
     }));
   };
 
-  const handleSubmit = async (event) => {
+  const handleManualLogin = async (event) => {
     event.preventDefault();
 
     const { username, address, password } = values;
@@ -81,58 +84,54 @@ const LogInSection = () => {
       });
   };
 
+  const handleMetamaskLogin = async (event) => {
+    const { address } = values;
+    console.log(values);
+
+    // instantiate Web3 with the injected provider
+    const web3 = new Web3(window.ethereum);
+    console.log(web3);
+
+    const nonce = Math.floor(Math.random() * 1000000).toString();
+
+    // Sign the nonce with the user's address
+    const signature = await web3.eth.personal.sign(nonce, address, "");
+
+    const payload = { address, signature, nonce };
+
+    // Send the signed message to the server
+    await loginWithMetamask(payload)
+      .then((res) => {
+        localStorage.setItem("access_token", res?.data?.token);
+        navigate(`/`);
+      })
+      .catch((err) => {
+        console.error(err);
+        setErrorMessage(err.response.data.message);
+      });
+  };
+
   return (
-    <div className="flex flex-col items-center justify-center w-full gap-8 p-6 sm:py-10 md:py-14 lg:py-16 xl:py-20 sm:px-12 md:px-18 lg:px-24 xl:px-30">
+    <div className="w-full p-6 sm:py-10 md:py-14 lg:py-16 xl:py-20 sm:px-12 md:px-18 lg:px-24 xl:px-30">
       {!isMetamaskConnected ? (
-        <>
+        <div className="flex flex-col items-center justify-center w-full gap-8">
           <Typography variant="h6" align="center" className="w-full">
             To Initiate the log in process, you have to connect metamask wallet.
           </Typography>
           <Button type="button" variant="contained" onClick={() => connectMetamask()}>
             {loading ? "Connecting..." : "Connect to Metamask"}
           </Button>
-        </>
+        </div>
       ) : (
         isMetamaskConnected && (
-          <>
-            <Typography variant="h6" align="center" className="w-full">
-              Log in form
-            </Typography>
-            <form onSubmit={handleSubmit} className="flex flex-col items-center justify-center w-3/5 gap-5">
-              <TextField
-                fullWidth
-                required
-                id="username"
-                label="Username"
-                name="username"
-                type="text"
-                variant="outlined"
-                value={values?.username}
-                placeholder="Enter The Username"
-                onChange={(event) => handleChange(event)}
-              />
-              <TextField
-                fullWidth
-                required
-                type="password"
-                id="password"
-                name="password"
-                label="Password"
-                variant="outlined"
-                value={values?.password}
-                placeholder="Enter The Password"
-                onChange={(event) => handleChange(event)}
-              />
-              <Button fullWidth type="submit" variant="contained" disabled={!values?.username && !values?.password}>
-                {loading ? "Logging in..." : "Log in"}
-              </Button>
-            </form>
-            {errorMessage && (
-              <Typography variant="h5" align="center" className="w-full text-red-900">
-                {errorMessage}
-              </Typography>
-            )}
-          </>
+          <LoginTabs
+            handleManualLogin={handleManualLogin}
+            values={values}
+            handleChange={handleChange}
+            loading={loading}
+            errorMessage={errorMessage}
+            handleMetamaskLogin={handleMetamaskLogin}
+          />
         )
       )}
     </div>
