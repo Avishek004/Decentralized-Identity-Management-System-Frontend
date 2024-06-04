@@ -20,7 +20,7 @@ function App() {
     if (loggedInUser) {
       authenticateUser()
         .then((res) => {
-          console.log(res);
+          // console.log(res);
         })
         .catch((err) => {
           localStorage.clear();

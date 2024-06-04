@@ -107,12 +107,10 @@ const LogInSection = () => {
         }
       })
       .catch((err) => {
-        if (err?.response?.status === 400) {
-          setLoading(false);
-          console.error(err);
-          setErrorModal(true);
-          setErrorMessage(err?.response?.data?.message);
-        }
+        setLoading(false);
+        console.error(err);
+        setErrorModal(true);
+        setErrorMessage(err?.response?.data);
       });
   };
 

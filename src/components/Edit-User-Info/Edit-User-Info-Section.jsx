@@ -3,14 +3,18 @@ import { useEffect, useState } from "react";
 import { getUserInfo, updateUserInfo } from "../../lib/api/auth";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faSpinner } from "@fortawesome/free-solid-svg-icons";
+import { fileUpload } from "../../lib/api/file";
 
 const EditUserInfoSection = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [imageLoading, setImageLoading] = useState(false);
   const [values, setValues] = useState({
     firstName: "",
     lastName: "",
-    picture: "",
+    image: "",
     addressInfo: "",
     number: "",
   });
@@ -20,6 +24,8 @@ const EditUserInfoSection = () => {
     queryFn: () => getUserInfo(),
   });
 
+  console.log(userinfo);
+
   useEffect(() => {
     if (isSuccess && userinfo) {
       setValues(userinfo.data);
@@ -27,7 +33,7 @@ const EditUserInfoSection = () => {
   }, [isSuccess, userinfo]);
 
   const handleChange = (event) => {
-    console.log(event.target.name, event.target.value);
+    // console.log(event.target.name, event.target.value);
     setValues({
       ...values,
       [event.target.name]: event.target.value,
@@ -36,15 +42,43 @@ const EditUserInfoSection = () => {
 
   console.log(values);
 
+  const handleImageChange = async (event) => {
+    try {
+      setImageLoading(true);
+      const formData = new FormData();
+      const [file] = event.target.files;
+      formData.append("file", file);
+
+      await fileUpload(formData)
+        .then((res) => {
+          console.log(res);
+          setImageLoading(false);
+          setValues({
+            ...values,
+            image: res?.data?.IpfsHash,
+          });
+        })
+        .catch((err) => {
+          setImageLoading(false);
+          console.error(err);
+        });
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     setLoading(true);
+    console.log(values);
     await updateUserInfo(values)
       .then((res) => {
+        setLoading(false);
         console.log(res);
         navigate("/user-info");
       })
       .catch((err) => {
+        setLoading(true);
         console.error(err);
       });
   };
@@ -55,6 +89,29 @@ const EditUserInfoSection = () => {
         Update User Information
       </Typography>
       <form onSubmit={handleSubmit} className="flex flex-col items-center justify-center w-3/5 gap-5">
+        <div className="flex flex-col items-center justify-center w-full gap-5">
+          <img
+            src={
+              values?.image
+                ? `${import.meta.env.VITE_PINATA_GATEWAY_URL}/ipfs/${values.image}`
+                : "https://blog-bucket.s3.brilliant.com.bd/fileavatar/2bec16d5-bc59-4eb8-9fe7-d5c43dc5145f.png"
+            }
+            alt=""
+            className="w-60 h-60 rounded-2xl"
+          />
+          <div className="flex items-center justify-center w-full gap-5">
+            <input
+              accept="image/*"
+              multiple
+              id="user-image"
+              onChange={(event) => handleImageChange(event)}
+              name="avatar"
+              type="file"
+              disabled={imageLoading}
+            />
+            {imageLoading && <FontAwesomeIcon icon={faSpinner} spin />}
+          </div>
+        </div>
         <TextField
           fullWidth
           id="firstName"
