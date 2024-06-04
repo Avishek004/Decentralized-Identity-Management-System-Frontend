@@ -1,7 +1,8 @@
 import { Button, TextField, Typography } from "@mui/material";
-import React from "react";
+import LogInModal from "./Log-In-Modal";
 
-const ManualLogIn = ({ handleManualLogin, values, handleChange, loading, errorMessage }) => {
+const ManualLogIn = ({ handleManualLogin, values, handleChange, loading, errorMessage, successModal, errorModal, successMessage }) => {
+  // console.log(errorModal);
   return (
     <div className="flex flex-col items-center justify-center w-full gap-5">
       <Typography variant="h6" align="center" className="w-full">
@@ -36,11 +37,6 @@ const ManualLogIn = ({ handleManualLogin, values, handleChange, loading, errorMe
           {loading ? "Logging in..." : "Log in"}
         </Button>
       </form>
-      {errorMessage && (
-        <Typography variant="h5" align="center" className="w-full text-red-900">
-          {errorMessage}
-        </Typography>
-      )}
     </div>
   );
 };

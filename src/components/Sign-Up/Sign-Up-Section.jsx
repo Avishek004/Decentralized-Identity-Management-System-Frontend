@@ -1,12 +1,14 @@
 import { Web3 } from "web3";
 import { useState } from "react";
-import { signUp } from "../../lib/api/auth";
-import { useNavigate } from "react-router-dom";
+import { getNonce, signUp } from "../../lib/api/auth";
 import { Button, TextField, Typography } from "@mui/material";
+import SignUpModal from "./Sign-Up-Modal";
 
 const SignUpSection = () => {
-  const navigate = useNavigate();
-
+  const [successModal, setSuccessModal] = useState(false);
+  const [errorModal, setErrorModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState();
+  const [errorMessage, setErrorMessage] = useState();
   const [loading, setLoading] = useState(false);
   const [isMetamaskConnected, setIsMetamaskConnected] = useState(false);
   const [values, setValues] = useState({
@@ -17,19 +19,19 @@ const SignUpSection = () => {
 
   async function connectMetamask() {
     //check metamask is installed
-    console.log(window.ethereum);
+    // console.log(window.ethereum);
     if (window.ethereum) {
       setLoading(true);
       // instantiate Web3 with the injected provider
       const web3 = new Web3(window.ethereum);
-      console.log(web3);
+      // console.log(web3);
 
       //request user to connect accounts (Metamask will prompt)
       await window.ethereum.request({ method: "eth_requestAccounts" });
 
       //get the connected accounts
       const accounts = await web3.eth.getAccounts();
-      console.log(accounts);
+      // console.log(accounts);
 
       //show the first connected account in the react page
       setValues({
@@ -55,26 +57,59 @@ const SignUpSection = () => {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    setLoading(true);
 
     const { username, address, password } = values;
-    console.log(values);
+    // console.log(values);
 
     // instantiate Web3 with the injected provider
     const web3 = new Web3(window.ethereum);
-    console.log(web3);
+    // console.log(web3);
 
-    const signature = await web3.eth.personal.sign(username, address, password);
-    console.log(signature);
+    let nonce;
 
-    const payload = { username, address, password, signature };
-
-    await signUp(payload)
+    await getNonce()
       .then((res) => {
-        console.log(res);
-        navigate(`/login`);
+        // console.log(res);
+        nonce = res?.data?.nonce;
       })
       .catch((err) => {
         console.error(err);
+      });
+
+    // console.log(nonce);
+    // Try to sign the message
+    let signature;
+    try {
+      signature = await web3.eth.personal.sign(nonce, address, password);
+      // console.log("Signature:", signature);
+    } catch (signError) {
+      // User refused to sign the message
+      // console.error("User refused to sign the message:", signError);
+      setLoading(false);
+      setErrorModal(true);
+      setErrorMessage("You refused to sign the message.");
+      return;
+    }
+
+    const payload = { username, address, password, signature, nonce };
+
+    await signUp(payload)
+      .then((res) => {
+        // console.log(res);
+        if (res?.status === 200) {
+          setLoading(false);
+          setSuccessModal(true);
+          setSuccessMessage(res?.data);
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+        if (err?.response?.status === 400) {
+          setLoading(false);
+          setErrorModal(true);
+          setErrorMessage(err?.response?.data);
+        }
       });
   };
 
@@ -120,10 +155,12 @@ const SignUpSection = () => {
                 placeholder="Enter The Password"
                 onChange={(event) => handleChange(event)}
               />
-              <Button fullWidth type="submit" variant="contained" disabled={!values?.username && !values?.password}>
+              <Button fullWidth type="submit" variant="contained" disabled={(!values?.username && !values?.password) || loading}>
                 {loading ? "Signing Up..." : "Sign Up"}
               </Button>
             </form>
+            {successModal && <SignUpModal modal={successModal} message={successMessage} />}
+            {errorModal && <SignUpModal modal={errorModal} message={errorMessage} />}
           </>
         )
       )}

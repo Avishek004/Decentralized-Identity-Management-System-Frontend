@@ -2,23 +2,36 @@ import { useState } from "react";
 import { Tabs, Tab, Box } from "@mui/material";
 import ManualLogIn from "./Manual-Log-In";
 import MetamaskLogin from "./Metamask-Login";
+import LogInModal from "./Log-In-Modal";
 
-function CustomTabPanel({ children, value, index, ...other }) {
+const CustomTabPanel = ({ children, value, index, ...other }) => {
   return (
     <div role="tabpanel" hidden={value !== index} id={`simple-tabpanel-${index}`} aria-labelledby={`simple-tab-${index}`} {...other}>
       {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
     </div>
   );
-}
+};
 
-function a11yProps(index) {
+const a11yProps = (index) => {
   return {
     id: `simple-tab-${index}`,
     "aria-controls": `simple-tabpanel-${index}`,
   };
-}
+};
 
-export default function LoginTabs({ handleManualLogin, values, handleChange, loading, errorMessage, handleMetamaskLogin }) {
+const LoginTabs = ({
+  handleManualLogin,
+  values,
+  handleChange,
+  loading,
+  errorMessage,
+  handleMetamaskLogin,
+  successModal,
+  errorModal,
+  successMessage,
+  handleNavigate,
+}) => {
+  // console.log(successModal);
   const [value, setValue] = useState(0);
 
   const handleChangeTab = (event, newValue) => {
@@ -34,17 +47,15 @@ export default function LoginTabs({ handleManualLogin, values, handleChange, loa
         </Tabs>
       </Box>
       <CustomTabPanel value={value} index={0}>
-        <ManualLogIn
-          handleManualLogin={handleManualLogin}
-          values={values}
-          handleChange={handleChange}
-          loading={loading}
-          errorMessage={errorMessage}
-        />
+        <ManualLogIn handleManualLogin={handleManualLogin} values={values} handleChange={handleChange} loading={loading} />
       </CustomTabPanel>
       <CustomTabPanel value={value} index={1}>
         <MetamaskLogin handleMetamaskLogin={handleMetamaskLogin} />
       </CustomTabPanel>
+      {errorModal && <LogInModal modal={errorModal} message={errorMessage} error={true} handleNavigate={handleNavigate} />}
+      {successModal && <LogInModal modal={successModal} message={successMessage} error={false} handleNavigate={handleNavigate} />}
     </Box>
   );
-}
+};
+
+export default LoginTabs;

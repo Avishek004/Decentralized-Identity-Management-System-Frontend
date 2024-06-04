@@ -1,15 +1,17 @@
 import { Button, Typography } from "@mui/material";
 import { useState } from "react";
 import { Web3 } from "web3";
-import { login, loginWithMetamask } from "../../lib/api/auth";
+import { getNonce, login, loginWithMetamask } from "../../lib/api/auth";
 import { useNavigate } from "react-router-dom";
-import ManualLogIn from "./Manual-Log-In";
-import MetamaskLogin from "./Metamask-Login";
 import LoginTabs from "./Log-In-Tabs";
 
 const LogInSection = () => {
   const navigate = useNavigate();
 
+  const [errorMessage, setErrorMessage] = useState();
+  const [successMessage, setSuccessMessage] = useState();
+  const [errorModal, setErrorModal] = useState(false);
+  const [successModal, setSuccessModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isMetamaskConnected, setIsMetamaskConnected] = useState(false);
   const [values, setValues] = useState({
@@ -17,23 +19,22 @@ const LogInSection = () => {
     username: "",
     password: "",
   });
-  const [errorMessage, setErrorMessage] = useState();
 
   async function connectMetamask() {
     //check metamask is installed
-    console.log(window.ethereum);
+    // console.log(window.ethereum);
     if (window.ethereum) {
       setLoading(true);
       // instantiate Web3 with the injected provider
       const web3 = new Web3(window.ethereum);
-      console.log(web3);
+      // console.log(web3);
 
       //request user to connect accounts (Metamask will prompt)
       await window.ethereum.request({ method: "eth_requestAccounts" });
 
       //get the connected accounts
       const accounts = await web3.eth.getAccounts();
-      console.log(accounts);
+      // console.log(accounts);
 
       //show the first connected account in the react page
       setValues({
@@ -47,7 +48,7 @@ const LogInSection = () => {
     }
   }
 
-  console.log(values);
+  // console.log(values);
 
   const handleChange = (event) => {
     // console.log(event.target.name, event.target.value);
@@ -59,56 +60,126 @@ const LogInSection = () => {
 
   const handleManualLogin = async (event) => {
     event.preventDefault();
+    setLoading(true);
 
     const { username, address, password } = values;
-    console.log(values);
+    // console.log(values);
 
     // instantiate Web3 with the injected provider
     const web3 = new Web3(window.ethereum);
-    console.log(web3);
+    // console.log(web3);
 
-    const signature = await web3.eth.personal.sign(username, address, password);
-    console.log(signature);
+    let nonce;
 
-    const payload = { username, address, password, signature };
+    await getNonce()
+      .then((res) => {
+        // console.log(res);
+        nonce = res?.data?.nonce;
+      })
+      .catch((err) => {
+        console.error(err);
+      });
+
+    // Try to sign the message
+    let signature;
+    try {
+      signature = await web3.eth.personal.sign(nonce, address, password);
+      // console.log("Signature:", signature);
+    } catch (signError) {
+      // User refused to sign the message
+      // console.error("User refused to sign the message:", signError);
+      setLoading(false);
+      setErrorModal(true);
+      setErrorMessage("You refused to sign the message.");
+      return;
+    }
+
+    const payload = { username, address, password, signature, nonce };
 
     await login(payload)
       .then((res) => {
         console.log(res);
-        localStorage.setItem("access_token", res?.data?.token);
-        navigate(`/`);
+        if (res?.status === 200) {
+          setLoading(false);
+          setSuccessModal(true);
+          setSuccessMessage(res?.data?.message);
+          localStorage.setItem("access_token", res?.data?.token);
+        }
       })
       .catch((err) => {
-        console.error(err);
-        setErrorMessage(err.response.data.message);
+        if (err?.response?.status === 400) {
+          setLoading(false);
+          console.error(err);
+          setErrorModal(true);
+          setErrorMessage(err?.response?.data?.message);
+        }
       });
   };
 
+  // console.log(errorModal);
+
   const handleMetamaskLogin = async (event) => {
+    setLoading(true);
     const { address } = values;
-    console.log(values);
+    // console.log(values);
 
     // instantiate Web3 with the injected provider
     const web3 = new Web3(window.ethereum);
-    console.log(web3);
+    // console.log(web3);
 
-    const nonce = Math.floor(Math.random() * 1000000).toString();
+    let nonce;
+
+    await getNonce()
+      .then((res) => {
+        // console.log(res);
+        nonce = res?.data?.nonce;
+      })
+      .catch((err) => {
+        console.error(err);
+      });
 
     // Sign the nonce with the user's address
-    const signature = await web3.eth.personal.sign(nonce, address, "");
+    // Try to sign the message
+    let signature;
+    try {
+      signature = await web3.eth.personal.sign(nonce, address, "");
+      // console.log("Signature:", signature);
+    } catch (signError) {
+      // User refused to sign the message
+      // console.error("User refused to sign the message:", signError);
+      setLoading(false);
+      setErrorModal(true);
+      setErrorMessage("You refused to sign the message.");
+      return;
+    }
 
     const payload = { address, signature, nonce };
 
     // Send the signed message to the server
     await loginWithMetamask(payload)
       .then((res) => {
-        localStorage.setItem("access_token", res?.data?.token);
-        navigate(`/`);
+        if (res?.status === 200) {
+          setLoading(false);
+          setSuccessModal(true);
+          setSuccessMessage(res?.data?.message);
+          localStorage.setItem("access_token", res?.data?.token);
+        }
       })
       .catch((err) => {
+        setLoading(false);
         console.error(err);
+        setErrorModal(true);
         setErrorMessage(err.response.data.message);
       });
+  };
+
+  const handleNavigate = () => {
+    if (errorModal) {
+      setErrorModal(false);
+      navigate(`/login`);
+    } else {
+      navigate(`/`);
+    }
   };
 
   return (
@@ -131,6 +202,10 @@ const LogInSection = () => {
             loading={loading}
             errorMessage={errorMessage}
             handleMetamaskLogin={handleMetamaskLogin}
+            successModal={successModal}
+            errorModal={errorModal}
+            successMessage={successMessage}
+            handleNavigate={handleNavigate}
           />
         )
       )}
