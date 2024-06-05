@@ -51,15 +51,15 @@ const UserInfoSection = () => {
       ) : (
         isSuccess &&
         student && (
-          <div className="flex items-center justify-center w-full gap-10">
+          <div className="flex flex-col items-center justify-center w-full gap-10">
             <Card sx={{ padding: "20px" }}>
               <CardMedia
-                sx={{ height: 140 }}
+                sx={{ width: 300, height: 300 }}
                 image={`${import.meta.env.VITE_PINATA_GATEWAY_URL}/ipfs/${student?.image}`}
                 title={student?.firstName + student?.lastName}
               />
               <CardContent>
-                <Typography gutterBottom variant="h5" component="div">
+                <Typography gutterBottom variant="h5" align="center">
                   {student?.firstName + " " + student?.lastName}
                 </Typography>
                 <Typography variant="body2" color="text.secondary" align="center">
