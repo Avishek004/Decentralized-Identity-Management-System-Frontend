@@ -25,12 +25,14 @@ export const loginWithMetamask = async (payload) => {
 };
 
 export const getUserInfo = async () => {
-  return await axios.get(`${import.meta.env.VITE_AUTH_API_URL}/api/v1/auth/get-user-info`, {
+  const response = await axios.get(`${import.meta.env.VITE_AUTH_API_URL}/api/v1/auth/get-user-info`, {
     headers: {
       Authorization: "Bearer " + localStorage.getItem("access_token"),
     },
     "Content-Type": "application/json",
   });
+
+  return response.data;
 };
 
 export const authenticateUser = async () => {
