@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { getUserInfo } from "../../lib/api/auth";
 import {
   Button,
@@ -30,7 +30,7 @@ const UserInfoSection = () => {
     queryFn: () => getUserInfo(),
   });
 
-  console.log(student);
+  // console.log(student);
 
   return (
     <div className="flex flex-col items-center justify-center w-full gap-10 p-6 sm:px-12 md:px-18 lg:px-24 xl:px-30 sm:py-8 md:py-10 lg:py-12 xl:py-16">
@@ -85,18 +85,6 @@ const UserInfoSection = () => {
                 </TableBody>
               </Table>
             </TableContainer>
-            {/* <p className="text-sm not-italic font-medium font-poppins">
-              <span className="text-blue">Name: </span>
-              <span className="text-black">{student?.data?.firstName + " " + student?.data?.lastName}</span>
-            </p>
-            <p className="text-sm not-italic font-medium font-poppins">
-              <span className="text-blue">Address: </span>
-              <span className="text-black">{student?.data?.addressInfo}</span>
-            </p>
-            <p className="text-sm not-italic font-medium font-poppins">
-              <span className="text-blue">Phone Number: </span>
-              <span className="text-black">{student?.data?.number}</span>
-            </p> */}
           </div>
         )
       )}

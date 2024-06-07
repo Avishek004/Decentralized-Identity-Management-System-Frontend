@@ -45,7 +45,7 @@ const SignUpSection = () => {
     }
   }
 
-  console.log(values);
+  // console.log(values);
 
   const handleChange = (event) => {
     // console.log(event.target.name, event.target.value);
